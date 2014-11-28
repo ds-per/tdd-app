@@ -3,7 +3,6 @@ SELECT
     , equip.idmodelomaterial AS modelomaterial
     , s.idproduto as produto
     , idprovincia as provincia
-    , mp.idmunicipio as municipio
     , if(conta.contahotel = 1, COUNT(*), count(DISTINCT ct.idcontaservico)) as fact_count
         FROM consumo c
         INNER JOIN subscricao s ON c.idsubscricao = s.idsubscricao
@@ -17,5 +16,5 @@ SELECT
             c.datainicio <= :day
             AND c.datafim >= :day
             AND s.idproduto != 27
-        GROUP BY idmodelomaterial, s.idproduto, idprovincia, mp.idmunicipio
+        GROUP BY idmodelomaterial, s.idproduto, idprovincia
 
