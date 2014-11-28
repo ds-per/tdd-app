@@ -1,0 +1,20 @@
+*.swp
+*.swn
+*.swm
+*.swo
+*.pyc
+*.log
+._*
+.DS_Store
+*~
+*.orig
+*.espressostorage
+.Keka-*
+
+
+# Pycharm (testing)
+.idea
+
+# Code coverage reports folder
+coverage/
+pdetl
