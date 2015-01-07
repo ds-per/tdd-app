@@ -1,7 +1,6 @@
 #!/usr/bin/env python2.7
 import argparse
 from pdetl import Pipeline
-from pdetl import sql
 from settings import DATABASES
 import datetime
 
