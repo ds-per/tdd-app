@@ -1,7 +1,6 @@
 SELECT  
- equip.idmodelomaterial as modelomaterial
+equip.idmodelomaterial as modelomaterial
 , idprovincia as provincia
-, mp.idmunicipio as municipio
 , s2.idproduto AS from_produto
 , s1.idproduto AS to_produto
 , IF(s1.idproduto = s2.idproduto, 'MANTEM',
@@ -25,7 +24,7 @@ SELECT
     LEFT JOIN subscricao s2 ON  s2.idsubscricao = c2.idsubscricao
     INNER JOIN contaservico ct ON ct.idcontaservico =  s1.idcontaservico
     INNER join conta using(idconta)
-    INNER JOIN equipamento equip ON equip.idcontaservico = ct.idcontaservico
+    LEFT JOIN equipamento equip ON equip.idcontaservico = ct.idcontaservico
     INNER JOIN morada m ON m.idmorada = ct.idmorada
     INNER JOIN comuna cm ON cm.idcomuna = m.idcomuna
     INNER JOIN municipio mp ON mp.idmunicipio = cm.idmunicipio
@@ -34,4 +33,4 @@ SELECT
     and s1.idproduto != 27
     and equip.idtipoequipamento = 1
     and (equip.dataanulacao is null or equip.dataanulacao > %(day)s )
-    GROUP BY demora, idmodelomaterial, s1.idproduto, idprovincia, municipio, tipo
+    GROUP BY demora, idmodelomaterial, s1.idproduto, idprovincia, tipo
