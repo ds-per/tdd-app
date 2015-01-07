@@ -40,9 +40,12 @@ DATABASES = {
     "129-dwmz": "mysql+pymysql://root:pinkfloyd@172.16.5.129/dwmz",
     "128-zapweb": "mysql+pymysql://root:pinkfloyd@172.16.5.128/zapweb",
     "128-zapwmz": "mysql+pymysql://root:pinkfloyd@172.16.5.128/zapwmz",
+    "129-wholesale": "mysql+pymysql://root:pinkfloyd@172.16.5.129/wholesale",
     "74-zapweb": "mysql://root:risingstar@172.16.5.74/zapweb",
+    "74-zapwmz": "mysql://root:risingstar@172.16.5.74/zapwmz",
     "128": "mysql+pymysql://root:pinkfloyd@172.16.5.128",
     "129": "mysql+pymysql://root:pinkfloyd@172.16.5.129",
+    "staging_ao": "mysql+pymysql://root:pinkfloyd@10.151.12.49/staging_ao",
 }
 
 
