@@ -1,0 +1,3 @@
+[submodule "pdetl"]
+	path = pdetl
+	url = https://github.com/balsagoth/pdetl.git
