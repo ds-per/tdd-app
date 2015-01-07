@@ -1,5 +1,5 @@
 from pdetl import Pipeline
-from pdetl import sql
+from settings import load
 from settings import DATABASES, CONSUMOS_CLASS
 import datetime
 import os
@@ -38,18 +38,19 @@ def run(fact_table, dia, source, target):
         p.extract("staging", save=True)
         print "Extract from staging, ", len(p.data)
     else:
-        p.extract("parquews", params={"query": "call p_fact2('2015-01-04')"}, save=True)
+        p.extract("parquews",
+                  params={"query": "call p_fact(%s)" % dia.strftime("%Y-%m-%d")},
+                  save=True)
         print "extract: ", len(p.data)
-
-        p.transform("parquews", products)
-        p.data = p.data.groupby(['produto', 'produto2'],
-                                as_index=False).agg({'numerocartao': pd.Series.nunique})
-        p.data.rename(columns={'numerocartao': 'fact_count'}, inplace=True)
         p.add_column("idtempo", idtempo)
-
         p.load("staging")
         print "Save staging, ", p.datastore.staging.fullpath
 
+    p.transform("parquews", products)
+    p.data = p.data.groupby(['produto', 'produto2'],
+                            as_index=False).agg({'numerocartao': pd.Series.nunique})
+    p.data.rename(columns={'numerocartao': 'fact_count'}, inplace=True)
+    p.add_column("idtempo", idtempo)
     r = p.clean("target", conditions=[("idtempo", "eq", idtempo)])
     print "clean: ", r.rowcount
     p.data = p.data.where(pd.notnull(p.data), None)

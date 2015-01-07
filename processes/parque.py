@@ -1,5 +1,5 @@
 from pdetl import Pipeline
-from pdetl import sql
+from settings import load
 from settings import DATABASES, CONSUMOS_CLASS
 import datetime
 import os
@@ -94,7 +94,7 @@ def run(fact_table, dia, source, target):
         print "Extract from staging, ", len(p.data)
     else:
         p.add_source("sql", "parque", "source", url=DATABASES[source])
-        query = sql.load(os.path.join(sqldir, 'parque.sql'))
+        query = load(os.path.join(sqldir, 'parque.sql'))
         p.extract("parque", params={'query': query, 'params': {'day': dia}}, save=True)
         print "extract: ", len(p.data)
 

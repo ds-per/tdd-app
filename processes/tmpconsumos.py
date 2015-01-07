@@ -1,5 +1,5 @@
 from pdetl import Pipeline
-from pdetl import sql
+from settings import load
 from settings import DATABASES, CONSUMOS_CLASS
 import datetime
 import os
@@ -18,7 +18,7 @@ def run(fact_table, dia, source, target):
     p.add_source("sql", "consumos", "source", url=DATABASES[source])
     p.add_source("sql", "target", "target", url=DATABASES[target], table=fact_table)
 
-    query = sql.load(os.path.join(sqldir, 'tmpconsumos.sql'))
+    query = load(os.path.join(sqldir, 'tmpconsumos.sql'))
     p.extract("consumos", params={'query': query, 'params': {'day': dia}}, save=True)
     p.add_column("idtempo", idtempo)
     print "extract: ", len(p.data)

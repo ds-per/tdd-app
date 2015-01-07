@@ -62,3 +62,9 @@ TRIMESTREID = [1,1,1,2,2,2,3,3,3,4,4,4]
 DCLASS = [0,3,6,12,24,48,59999]
 INTERVENCAO_CLASS = [0,24,48,72,144,288,1000,59999]
 CONSUMOS_CLASS = [0,1,2,3,4,5,10,15,30,60,90,180,360,59999]
+
+
+def load(file_):
+    with open(file_, "r") as f:
+        data = f.read()
+    return data
