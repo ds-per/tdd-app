@@ -39,14 +39,14 @@ def run(fact_table, dia, source, target):
         print "Extract from staging, ", len(p.data)
     else:
         p.extract("parquews",
-                  params={"query": "call p_fact(%s)" % dia.strftime("%Y-%m-%d")},
+                  params={"query": "call p_fact('%s')" % dia.strftime("%Y-%m-%d")},
                   save=True)
         print "extract: ", len(p.data)
         p.add_column("idtempo", idtempo)
         p.load("staging")
         print "Save staging, ", p.datastore.staging.fullpath
 
-    p.transform("parquews", products)
+    p.transform(None, products)
     p.data = p.data.groupby(['produto', 'produto2'],
                             as_index=False).agg({'numerocartao': pd.Series.nunique})
     p.data.rename(columns={'numerocartao': 'fact_count'}, inplace=True)
