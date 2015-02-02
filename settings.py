@@ -46,6 +46,7 @@ DATABASES = {
     "128": "mysql+pymysql://root:pinkfloyd@172.16.5.128",
     "129": "mysql+pymysql://root:pinkfloyd@172.16.5.129",
     "staging_ao": "mysql+pymysql://root:pinkfloyd@10.151.12.49/staging_ao",
+    "49-acontecimento": "mysql+pymysql://root:pinkfloyd@10.151.12.49/acontecimento",
 }
 
 

@@ -12,7 +12,7 @@ $py runner.py -p consumos -f fct_consumos -c 128-zapwmz -t 74-zapwmz --now
 $py runner.py -p consumos -f fct_consumos -c 128-zapwmz -t 129-dwmz --now
 $py runner.py -p parque -c 128-zapwmz -t 74-zapwmz --now
 $py runner.py -p parque -c 128-zapwmz -t 129-dwmz --now
-$py runner.py -p tmpparque -c 12-zapwmz -t 129-dwmz --now
+$py runner.py -p tmpparque -c 128-zapwmz -t 129-dwmz --now
 
 # tvcabo
 $py runner.py -p tvcabo -c 129-wholesale -t 129-dwao --now
