@@ -30,3 +30,4 @@ FROM
        WHERE
         ct.idtipocontaservico = 2
         and p.idprodutotipo = 3 and p.genero = "M"
+        and equip.idmodelomaterial in (85,86)
