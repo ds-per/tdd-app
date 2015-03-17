@@ -4,13 +4,24 @@ SELECT
 , mp.idmunicipio as municipio
 , s2.idproduto AS from_produto
 , s1.idproduto AS to_produto
-, IF(s1.idproduto = s2.idproduto, 'MANTEM',
-    IF((s2.idproduto = 23 AND s1.idproduto = 22) OR
-        (s2.idproduto = 23 AND s1.idproduto = 24) OR
-        (s2.idproduto = 22 AND s1.idproduto = 24), 'DOWNGRADE',
-        IF((s2.idproduto = 24 AND s1.idproduto = 22) OR
-            (s2.idproduto = 24 AND s1.idproduto = 23) OR
-            (s2.idproduto = 22 AND s1.idproduto = 23), 'UPGRADE', 'NOVO'))) AS tipo
+, IF(s2.idproduto is null
+      , 'NOVO'
+      , IF(s1.idproduto = s2.idproduto
+      , 'MANTEM'
+      , IF((s2.idproduto = 23 AND s1.idproduto in (22, 24, 28))
+           OR
+           (s2.idproduto = 22 AND s1.idproduto in (24, 28))
+           OR
+           (s2.idproduto = 24 AND s1.idproduto = 28)
+      , 'DOWNGRADE'
+      , IF((s2.idproduto = 28 AND s1.idproduto in (22, 23, 24))
+           OR
+           (s2.idproduto = 24 AND s1.idproduto in (22, 23))
+           OR
+           (s2.idproduto = 22 AND s1.idproduto = 23)
+      , 'UPGRADE'
+      , 'BUG'
+    )))) AS tipo
 , DATEDIFF(c1.datainicio, c2.datafim) AS 'demora'
 , if(conta.contahotel = 1, COUNT(*), count(DISTINCT ct.idcontaservico)) as `fact_count`
         FROM consumo c1
