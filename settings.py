@@ -38,7 +38,7 @@ prev.addHandler(prev_handler)
 DATABASES = {
     "129-dwao": "mysql+pymysql://root:pinkfloyd@172.16.5.129/dwao",
     "129-dwmz": "mysql+pymysql://root:pinkfloyd@172.16.5.129/dwmz",
-    "128-zapweb": "mysql+pymysql://root:pinkfloyd@172.16.5.128/zapweb",
+    "128-zapweb": "mysql+pymysql://root:pinkfloyd@172.16.5.128/zapweb?charset=utf8",
     "128-zapwmz": "mysql+pymysql://root:pinkfloyd@172.16.5.128/zapwmz",
     "129-wholesale": "mysql+pymysql://root:pinkfloyd@172.16.5.129/wholesale",
     "74-zapweb": "mysql://root:risingstar@172.16.5.74/zapweb",
@@ -47,10 +47,21 @@ DATABASES = {
     "129": "mysql+pymysql://root:pinkfloyd@172.16.5.129",
     "staging_ao": "mysql+pymysql://root:pinkfloyd@10.151.12.49/staging_ao",
     "49-acontecimento": "mysql+pymysql://root:pinkfloyd@10.151.12.49/acontecimento",
+    "49-dw": "mysql+pymysql://root:pinkfloyd@10.151.12.49/dwao?charset=utf8",
 }
 
+DATABASES_MAPPING = {
+    "49-dw": {
+	    'user': 'root',
+	    'password': 'pinkfloyd',
+	    'host': '10.151.12.49',
+	    'database': 'dwao',
+	    'raise_on_warnings': True
+	}
+}
 
 DATE_FMT = '%Y-%m-%d'
+DIM_DATE_FMT = '%Y%m%d'
 
 # Deprecated settings
 
@@ -64,6 +75,15 @@ DCLASS = [0,3,6,12,24,48,59999]
 INTERVENCAO_CLASS = [0,24,48,72,144,288,1000,59999]
 CONSUMOS_CLASS = [0,1,2,3,4,5,10,15,30,60,90,180,360,59999]
 
+CANONICAL_SOURCES = ['ZW']
+FACT_DIMENSIONS = {
+    "vpps": ['dim_loja']
+}
+
+DIMENSION_UPDATE_STATUS = {
+    "success": "SUCCESS",
+    "failure": "FAILURE"
+}
 
 def load(file_):
     with open(file_, "r") as f:
