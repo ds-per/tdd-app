@@ -9,7 +9,7 @@ stagingdir = 'staging'
 
 
 def run(process, fact_table, dia, source, target):
-    print "Start Process: ", process
+    print "Start Process:", process, dia
     try:
         command = __import__("processes.%s" % process, fromlist=['processes'])
     except ImportError:

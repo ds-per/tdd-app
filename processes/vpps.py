@@ -35,6 +35,7 @@ def run(fact_table, day, source, target):
     vpps['idloja'] = vpps['idloja'].map(lambda x: get_sk(x, dim_lojas))
 
     p.data = vpps
-    p.add_column('iddate', day.strftime(DIM_DATE_FMT))
-    p.load("fact_vpps")
+    if not p.data.empty:
+        p.add_column('iddate', day.strftime(DIM_DATE_FMT))
+        p.load("fact_vpps")
 

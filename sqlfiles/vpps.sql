@@ -5,7 +5,7 @@ select
   , if(ar.viareclamacao is not null, 'RECLAMACAO',
       if(ar.viaregisto, 'REGISTO', 'DATAENTRY')) as via
   , p.nome as supervisor
-  , mslv.idloja
+  , mslv.idlojavirtual
   , e.numeroserie
 from
 	zapweb.movimentostocklojavirtual mslv
