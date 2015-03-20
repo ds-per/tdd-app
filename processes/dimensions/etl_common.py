@@ -18,8 +18,7 @@ def load_dimension(variables, query, db):
         cnx = mysql.connector.connect(**DATABASES_MAPPING[db])
         cursor = cnx.cursor()
 
-        for v in variables:
-            cursor.execute(query, v)
+        cursor.executemany(query, variables)
 
         cnx.commit()
         cursor.close()
