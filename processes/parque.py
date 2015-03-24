@@ -62,7 +62,7 @@ def parque_exp(df, data):
     expiradas = df.datafim < data
     nanuladas = (df.dataanulacao.isnull()) | (df.dataanulacao > data)
     pex = df[expiradas & nanuladas & (df.contahotel == 0)]
-    pex.loc[:, 'demora'] = datetime.date.today() - pex.datafim
+    pex.loc[:, 'demora'] = data - pex.datafim
     pex.loc[:, 'demora'] = pex.demora.astype('timedelta64[D]')
     pex.loc[:, 'tempoexp'] = pd.cut(pex['demora'], intervals, labels=labels, right=True)
 
@@ -118,6 +118,7 @@ def run(fact_table, dia, source, target):
     p.data = parque_exp(parque, dia)
     p.add_column("idtempo", idtempo)
 
+    import IPython; IPython.embed();
     r = p.clean("fct_expirados", conditions=[("idtempo", "eq", idtempo)])
     print "clean fct_expirado: ", r.rowcount
 
