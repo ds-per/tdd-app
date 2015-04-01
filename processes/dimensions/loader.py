@@ -22,7 +22,7 @@ def not_updated(today, dims, dw_db):
     dims_updated = p.extract("dimensions_updated", params={
         'query': dim_up,
         'params': {
-            'dims': ",".join(dims),
+            'dims': tuple(dims),
             'dateend': today,
             'status': DIMENSION_UPDATE_STATUS['success']
         }})
@@ -53,6 +53,7 @@ def update_dimensions(source, target, dims, force=False):
             p = Pipeline()
             p.add_source("sql", "dimensions_updated", "target", url=DATABASES[target], table="dimensions_updated")
             p.data = pd.DataFrame([result], columns=dim_loaded._fields)
+            p.data['details'] = p.data['details'].map(lambda x: (x[:250] + '...') if len(x) > 255 else x)
             p.load("dimensions_updated")
         except ImportError:
             print "No etl file to load"
