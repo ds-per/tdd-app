@@ -60,7 +60,7 @@ def add_to_df(df, movie, dim, key):
 
 
 def run(fact_table, day, source, target):
-    #update_dimensions(source, target, FACT_DIMENSIONS['compras_vod'])
+    update_dimensions(source, target, FACT_DIMENSIONS['compras_vod'])
 
     p = Pipeline()
 
