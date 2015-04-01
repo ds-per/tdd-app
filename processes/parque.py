@@ -62,7 +62,7 @@ def parque_exp(df, data):
     expiradas = df.datafim < data
     nanuladas = (df.dataanulacao.isnull()) | (df.dataanulacao > data)
     pex = df[expiradas & nanuladas & (df.contahotel == 0)]
-    pex.loc[:, 'demora'] = datetime.date.today() - pex.datafim
+    pex.loc[:, 'demora'] = data - pex.datafim
     pex.loc[:, 'demora'] = pex.demora.astype('timedelta64[D]')
     pex.loc[:, 'tempoexp'] = pd.cut(pex['demora'], intervals, labels=labels, right=True)
 
