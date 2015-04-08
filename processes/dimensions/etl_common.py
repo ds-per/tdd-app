@@ -1,7 +1,8 @@
-import mysql.connector
+#import mysql.connector
 import collections
-from mysql.connector import errorcode
+#from mysql.connector import errorcode
 from settings import DATABASES_MAPPING
+import pymysql.cursors
 
 dim_loaded = collections.namedtuple('Dim_load', ['name', 'datestart', 'dateend', 'status', 'details'])
 
@@ -11,27 +12,24 @@ def get_df_row_for_values(dim_values, val, source):
         & (dim_values.source == source)
     ]
 
-
-def load_dimension(variables, query, db):
+def load_dimension(variables, query, dbi):
     has_error = False
+    db = DATABASES_MAPPING[dbi]
+    connection = pymysql.connect(host=db['host'],
+                             user=db['user'],
+                             passwd=db['password'],
+                             db=db['database'],
+                             charset=db['charset'],
+                             cursorclass=pymysql.cursors.DictCursor)
+    cursor = connection.cursor()
     try:
-        cnx = mysql.connector.connect(**DATABASES_MAPPING[db])
-        cursor = cnx.cursor()
-
         cursor.executemany(query, variables)
-
-        cnx.commit()
-        cursor.close()
-        cnx.close()
-    except mysql.connector.Error as err:
+        connection.commit()
+    except Exception, e:
         has_error = True
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            message = "Wrong DB user or password"
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            message = "Database does not exist"
-        else:
-            message = err
-        cnx.close()
+        message = str(e)
     finally:
+        cursor.close()
+        connection.close()
         if has_error:
             raise Exception(message)

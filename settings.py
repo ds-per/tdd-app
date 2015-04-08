@@ -51,14 +51,27 @@ DATABASES = {
     "129-aaaa": "mssql+pymssql://bireporting:Bireporting!@10.151.8.129/?charset=utf8",
 }
 
+
 DATABASES_MAPPING = {
     "49-dw": {
-	    'user': 'root',
-	    'password': 'pinkfloyd',
-	    'host': '10.151.12.49',
-	    'database': 'dwao',
-	    'raise_on_warnings': True
-	}
+        'user': 'root',
+        'password': 'pinkfloyd',
+        'host': '10.151.12.49',
+        'database': 'dwao',
+        'charset': 'utf8'
+    }
+}
+
+CANONICAL_SOURCES = ['ZW']
+
+FACT_DIMENSIONS = {
+    "vpps": ['dim_loja'],
+    "compras_vod": ['dim_filme', 'dim_cliente']
+}
+
+DIMENSION_UPDATE_STATUS = {
+    "success": "SUCCESS",
+    "failure": "FAILURE"
 }
 
 DATE_FMT = '%Y-%m-%d'
@@ -75,19 +88,6 @@ TRIMESTREID = [1,1,1,2,2,2,3,3,3,4,4,4]
 DCLASS = [0,3,6,12,24,48,59999]
 INTERVENCAO_CLASS = [0,24,48,72,144,288,1000,59999]
 CONSUMOS_CLASS = [0,1,2,3,4,5,10,15,30,60,90,180,360,59999]
-
-CANONICAL_SOURCES = ['ZW']
-FACT_DIMENSIONS = {
-    "vpps": ['dim_loja'],
-    "compras_vod": ['dim_filme', 'dim_cliente']
-}
-
-DIMENSION_UPDATE_STATUS = {
-    "success": "SUCCESS",
-    "failure": "FAILURE"
-}
-
-CANONICAL_SOURCES = ['ZW']
 
 def load(file_):
     with open(file_, "r") as f:

@@ -15,4 +15,4 @@ from zapweb.cliente cli
 	left join zapweb.comuna com on (com.idcomuna = mor.idcomuna)
 	left join zapweb.municipio mun on (mun.idmunicipio = com.idmunicipio)
 	left join zapweb.provincia prov on (prov.idprovincia = mun.idprovincia)
-	order by cli.codigocliente desc
+	order by cli.codigocliente
