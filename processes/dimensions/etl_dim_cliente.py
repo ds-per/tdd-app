@@ -5,6 +5,7 @@ import pandas as pd
 import hashlib
 import re
 import datetime
+import numpy as np
 from etl_common import get_df_row_for_values, load_dimension, dim_loaded
 
 sql_dir = "dim_sql_files"
@@ -64,8 +65,8 @@ def run(source, target):
                     , row['sexo']
                     , row['datanascimento']
                     , row['estadocivil']
-                    , int(row['telefone'])
-                    , int(row['telemovel'])
+                    , int(row['telefone']) if not np.isnan(row['telefone']) else 0
+                    , int(row['telemovel']) if not np.isnan(row['telemovel']) else 0
                     , row['email']
                     , 1
                     , row['d_hash']
@@ -81,8 +82,8 @@ def run(source, target):
                     , row['sexo']
                     , row['datanascimento']
                     , row['estadocivil']
-                    , int(row['telefone'])
-                    , int(row['telemovel'])
+                    , int(row['telefone']) if not np.isnan(row['telefone']) else 0
+                    , int(row['telemovel']) if not np.isnan(row['telemovel']) else 0
                     , row['email']
                     , int(r.iloc[0]['version'])+1
                     , row['d_hash']
