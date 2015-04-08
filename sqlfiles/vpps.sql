@@ -4,8 +4,9 @@ select
       if (mslv.dataanulacao between timestamp(%(day)s, '00:00:00') and timestamp(%(day)s, '23:59:59'), 'anulada', 'distribuida'))) as tipo
   , time_to_sec(timediff(if (mslv.datavenda between timestamp(%(day)s, '00:00:00') and timestamp(%(day)s, '23:59:59'), mslv.datavenda, null), mslv.dataentradastock)) / 3600 as tempo_abastecimento
   , time_to_sec(timediff(if (mslv.datavenda between timestamp(%(day)s, '00:00:00') and timestamp(%(day)s, '23:59:59'), mslv.datavenda, null), timestamp(ar.dataentrega,ar.horaentrega))) / 3600 as tempo_activacao
-  , if(ar.viareclamacao is not null, 'RECLAMACAO',
-      if(ar.viaregisto, 'REGISTO', 'DATAENTRY')) as via
+  , if(ar.viareclamacao = 1, 'RECLAMACAO',
+      if(ar.viaregisto = 1, 'REGISTO',
+         if (ar.viaregistotelefonico = 1, 'DATAENTRY', 'SAR'))) as via
   , p.nome as supervisor
   , mslv.idlojavirtual as idloja
   , e.numeroserie

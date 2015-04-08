@@ -47,44 +47,42 @@ def run(source, target):
     status = DIMENSION_UPDATE_STATUS['success']
     details = ""
 
-    # TODO: talk with Iba to refactor this
-    # use pipeline to insert and/or update
-    for row in lojas.itertuples():
-        id, codigo, d_hash, estado, estrutura, idloja, nome, provincia, municipio, parceiro = row
+    for index, row in lojas.iterrows():
 
-        if d_hash not in dim_lojas['hash'].values:
-            if idloja not in dim_lojas['idloja'].values:
+        if row['d_hash'] not in dim_lojas['hash'].values:
+            if row['idloja'] not in dim_lojas['idloja'].values:
                 insert_variables.append([
-                    int(idloja)
-                    , nome
-                    , estrutura
-                    , provincia
-                    , municipio
-                    , codigo
-                    , parceiro
-                    , estado
-                    , d_hash
+                    int(row['idloja'])
+                    , row['nome']
+                    , row['estrutura']
+                    , row['provincia']
+                    , row['municipio']
+                    , row['codigo']
+                    , row['parceiro']
+                    , row['estado']
+                    , row['d_hash']
                     , 1
                 ])
             else:
-                r = dim_lojas[(dim_lojas.idloja == idloja)]
+                r = dim_lojas[(dim_lojas.idloja == row['idloja'])]
                 r = r.head(1)
                 update_variables.append([
-                    nome
-                    , estrutura
-                    , provincia
-                    , municipio
-                    , codigo
-                    , parceiro
-                    , estado
-                    , d_hash
+                    row['nome']
+                    , row['estrutura']
+                    , row['provincia']
+                    , row['municipio']
+                    , row['codigo']
+                    , row['parceiro']
+                    , row['estado']
+                    , row['d_hash']
                     , int(r.iloc[0]['version'])+1
-                    , int(idloja)
+                    , int(row['idloja'])
                 ])
 
     if insert_variables:
         try:
             load_dimension(insert_variables, target_query, target)
+            details += str(len(insert_variables)) + " new stores.\n"
         except Exception, e:
             status = DIMENSION_UPDATE_STATUS['failure']
             details += "At insert\n" + str(e)
@@ -92,6 +90,7 @@ def run(source, target):
     if update_variables:
         try:
             load_dimension(update_variables, target_update_query, target)
+            details += str(len(insert_variables)) + " stores updated.\n"
         except Exception, e:
             status = DIMENSION_UPDATE_STATUS['failure']
             details += "At update\n" + str(e)

@@ -28,9 +28,8 @@ def run(source, target):
     target_query = load(os.path.join(os.path.dirname(__file__), os.path.join(sql_dir, 'target_dw_insert_dim_cliente.sql')))
     target_update_query = load(os.path.join(os.path.dirname(__file__), os.path.join(sql_dir, 'target_dw_update_dim_cliente.sql')))
 
-    print "extract clientes after", datetime.datetime.now() - datestart
     clients = p.extract("zw_cliente", {'query': get_source_clientes})
-    print "trasnsform clientes after", datetime.datetime.now() - datestart
+
     clients = pd.DataFrame(
         map(transform_and_hash_client,
             clients.codigocliente,
@@ -52,51 +51,47 @@ def run(source, target):
     update_variables = []
     status = DIMENSION_UPDATE_STATUS['success']
     details = ""
-    print "lookups after", datetime.datetime.now() - datestart
-    for row in clients.itertuples():
-        id, codigocliente, datanascimento, email,\
-        estadocivil, d_hash, municipio, nome, provincia, sexo, telefone, telemovel = row
 
-        if d_hash not in dim_clients['hash'].values:
-            if codigocliente not in dim_clients['codigocliente'].values:
+    for index, row in clients.iterrows():
+
+        if row['d_hash'] not in dim_clients['hash'].values:
+            if row['codigocliente'] not in dim_clients['codigocliente'].values:
                 insert_variables.append([
-                    codigocliente
-                    , nome
-                    , provincia
-                    , municipio
-                    , sexo
-                    , datanascimento
-                    , estadocivil
-                    , int(telefone)
-                    , int(telemovel)
-                    , email
+                    row['codigocliente']
+                    , row['nome']
+                    , row['provincia']
+                    , row['municipio']
+                    , row['sexo']
+                    , row['datanascimento']
+                    , row['estadocivil']
+                    , int(row['telefone'])
+                    , int(row['telemovel'])
+                    , row['email']
                     , 1
-                    , d_hash
+                    , row['d_hash']
                     , canonical_source
                 ])
             else:
-                r = get_df_row_for_values(dim_clients, codigocliente, canonical_source)
+                r = get_df_row_for_values(dim_clients, row['codigocliente'], canonical_source)
                 r = r.head(1)
                 update_variables.append([
-                    nome
-                    , provincia
-                    , municipio
-                    , sexo
-                    , datanascimento
-                    , estadocivil
-                    , int(telefone)
-                    , int(telemovel)
-                    , email
+                    row['nome']
+                    , row['provincia']
+                    , row['municipio']
+                    , row['sexo']
+                    , row['datanascimento']
+                    , row['estadocivil']
+                    , int(row['telefone'])
+                    , int(row['telemovel'])
+                    , row['email']
                     , int(r.iloc[0]['version'])+1
-                    , d_hash
+                    , row['d_hash']
                     , canonical_source
                     , r.iloc[0]['codigocliente']
                     , canonical_source
                 ])
 
-    print "inserts...", datetime.datetime.now() - datestart
     if insert_variables:
-        print "insert",datetime.datetime.now() - datestart
         try:
             load_dimension(insert_variables, target_query, target)
             details += str(len(insert_variables)) + " new clients.\n"
@@ -105,10 +100,9 @@ def run(source, target):
             details += "At insert\n" + str(e)
             details += "\n"
     if update_variables:
-        print "update",datetime.datetime.now() - datestart
         try:
             load_dimension(update_variables, target_update_query, target)
-            details += str(len(insert_variables)) + " updated clients.\n"
+            details += str(len(insert_variables)) + " clients updated.\n"
         except Exception, e:
             status = DIMENSION_UPDATE_STATUS['failure']
             details += "At update\n" + str(e)
@@ -161,13 +155,6 @@ def transform_and_hash_client(
         , provincia
         , municipio)).encode('utf-8')
     )
-
-    # TODO: check if this is really necessary
-    """
-    nome = nome.decode('latin1')
-    provincia = provincia.decode('latin1')
-    municipio = municipio.decode('latin1')
-    """
 
     return {
         'codigocliente': codigocliente,

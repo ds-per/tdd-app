@@ -32,7 +32,6 @@ def run(source, target):
     details = ""
 
     if not filmes.empty:
-        print "inserting..."
         try:
             p.data = filmes
             p.load("target_dw_dim_loja")
