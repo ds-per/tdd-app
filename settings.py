@@ -43,7 +43,7 @@ DATABASES = {
     "129-wholesale": "mysql+pymysql://root:pinkfloyd@172.16.5.129/wholesale",
     "74-zapweb": "mysql://root:risingstar@172.16.5.74/zapweb",
     "74-zapwmz": "mysql://root:risingstar@172.16.5.74/zapwmz",
-    "128": "mysql+pymysql://root:pinkfloyd@172.16.5.128",
+    "128": "mysql+pymysql://root:pinkfloyd@172.16.5.128?charset=utf8",
     "129": "mysql+pymysql://root:pinkfloyd@172.16.5.129",
     "staging_ao": "mysql+pymysql://root:pinkfloyd@10.151.12.49/staging_ao",
     "49-acontecimento": "mysql+pymysql://root:pinkfloyd@10.151.12.49/acontecimento",

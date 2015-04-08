@@ -5,7 +5,6 @@ import pandas as pd
 import hashlib
 import re
 import datetime
-import numpy as np
 from etl_common import get_df_row_for_values, load_dimension, dim_loaded
 
 sql_dir = "dim_sql_files"
@@ -56,6 +55,16 @@ def run(source, target):
     for index, row in clients.iterrows():
 
         if row['d_hash'] not in dim_clients['hash'].values:
+
+            try:
+                tlf = int(row['telefone'])
+            except:
+                tlf = 0
+            try:
+                tlm = int(row['telemovel'])
+            except:
+                tlm = 0
+
             if row['codigocliente'] not in dim_clients['codigocliente'].values:
                 insert_variables.append([
                     row['codigocliente']
@@ -65,8 +74,8 @@ def run(source, target):
                     , row['sexo']
                     , row['datanascimento']
                     , row['estadocivil']
-                    , int(row['telefone']) if not np.isnan(row['telefone']) else 0
-                    , int(row['telemovel']) if not np.isnan(row['telemovel']) else 0
+                    , tlf
+                    , tlm
                     , row['email']
                     , 1
                     , row['d_hash']
@@ -82,8 +91,8 @@ def run(source, target):
                     , row['sexo']
                     , row['datanascimento']
                     , row['estadocivil']
-                    , int(row['telefone']) if not np.isnan(row['telefone']) else 0
-                    , int(row['telemovel']) if not np.isnan(row['telemovel']) else 0
+                    , tlf
+                    , tlm
                     , row['email']
                     , int(r.iloc[0]['version'])+1
                     , row['d_hash']
