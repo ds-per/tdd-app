@@ -55,8 +55,8 @@ def run(source, target):
                     int(row['idloja'])
                     , row['nome']
                     , row['estrutura']
-                    , row['provincia']
-                    , row['municipio']
+                    , row['nome_provincia']
+                    , row['nome_municipio']
                     , row['codigo']
                     , row['parceiro']
                     , row['estado']
@@ -69,8 +69,8 @@ def run(source, target):
                 update_variables.append([
                     row['nome']
                     , row['estrutura']
-                    , row['provincia']
-                    , row['municipio']
+                    , row['nome_provincia']
+                    , row['nome_municipio']
                     , row['codigo']
                     , row['parceiro']
                     , row['estado']
