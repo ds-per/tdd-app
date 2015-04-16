@@ -15,7 +15,6 @@ def run(source, target):
     datestart = datetime.datetime.now()
     print "Starting etl_dim_cliente at", datestart
 
-
     # Fetch ZW clients
     p = Pipeline()
     p.add_source("sql", "zw_cliente", "source", url=DATABASES[source])
@@ -28,81 +27,86 @@ def run(source, target):
     target_query = load(os.path.join(os.path.dirname(__file__), os.path.join(sql_dir, 'target_dw_insert_dim_cliente.sql')))
     target_update_query = load(os.path.join(os.path.dirname(__file__), os.path.join(sql_dir, 'target_dw_update_dim_cliente.sql')))
 
+    print "Extracting clients. Elapsed:", datetime.datetime.now() - datestart
     clients = p.extract("zw_cliente", {'query': get_source_clientes})
 
-    clients = pd.DataFrame(
-        map(transform_and_hash_client,
-            clients.codigocliente,
-            clients.nome,
-            clients.sexo,
-            clients.datanascimento,
-            clients.estadocivil,
-            clients.telefone,
-            clients.telemovel,
-            clients.email,
-            clients.provincia,
-            clients.municipio)
-    )
-
+    print "Extracting clients from DW. Elapsed:", datetime.datetime.now() - datestart
     # retrieve all dim_client hash
     dim_clients = p.extract("source_dw_dim_cliente", {'query': get_dw_clientes})
+
+    print "Applying transformations and filtering clients. Elapsed:", datetime.datetime.now() - datestart
+    nu_clients = pd.DataFrame(
+        filter(lambda y: y['d_hash'] not in dim_clients['hash'].values,
+               map(transform_and_hash_client,
+               clients.codigocliente,
+               clients.nome,
+               clients.sexo,
+               clients.datanascimento,
+               clients.estadocivil,
+               clients.telefone,
+               clients.telemovel,
+               clients.email,
+               clients.provincia,
+               clients.municipio)
+               )
+    )
 
     insert_variables = []
     update_variables = []
     status = DIMENSION_UPDATE_STATUS['success']
     details = ""
 
-    for index, row in clients.iterrows():
+    print "Selecting for insert or update. Elapsed:", datetime.datetime.now() - datestart
+    for index, row in nu_clients.iterrows():
 
-        if row['d_hash'] not in dim_clients['hash'].values:
+        try:
+            tlf = int(row['telefone'])
+        except:
+            tlf = 0
+        try:
+            tlm = int(row['telemovel'])
+        except:
+            tlm = 0
 
-            try:
-                tlf = int(row['telefone'])
-            except:
-                tlf = 0
-            try:
-                tlm = int(row['telemovel'])
-            except:
-                tlm = 0
-
-            if row['codigocliente'] not in dim_clients['codigocliente'].values:
-                insert_variables.append([
-                    row['codigocliente']
-                    , row['nome']
-                    , row['provincia']
-                    , row['municipio']
-                    , row['sexo']
-                    , row['datanascimento']
-                    , row['estadocivil']
-                    , tlf
-                    , tlm
-                    , row['email']
-                    , 1
-                    , row['d_hash']
-                    , canonical_source
-                ])
-            else:
-                r = get_df_row_for_values(dim_clients, row['codigocliente'], canonical_source)
-                r = r.head(1)
-                update_variables.append([
-                    row['nome']
-                    , row['provincia']
-                    , row['municipio']
-                    , row['sexo']
-                    , row['datanascimento']
-                    , row['estadocivil']
-                    , tlf
-                    , tlm
-                    , row['email']
-                    , int(r.iloc[0]['version'])+1
-                    , row['d_hash']
-                    , canonical_source
-                    , r.iloc[0]['codigocliente']
-                    , canonical_source
-                ])
+        r = get_df_row_for_values(dim_clients, row['codigocliente'], canonical_source)
+        try:
+            r = r.head(1)
+            update_variables.append([
+                row['nome'],
+                row['provincia'],
+                row['municipio'],
+                row['sexo'],
+                row['datanascimento'],
+                row['estadocivil'],
+                tlf,
+                tlm,
+                row['email'],
+                int(r.iloc[0]['version'])+1,
+                row['d_hash'],
+                canonical_source,
+                r.iloc[0]['codigocliente'],
+                canonical_source
+            ])
+        except:
+            insert_variables.append([
+                row['codigocliente'],
+                row['nome'],
+                row['provincia'],
+                row['municipio'],
+                row['sexo'],
+                row['datanascimento'],
+                row['estadocivil'],
+                tlf,
+                tlm,
+                row['email'],
+                1,
+                row['d_hash'],
+                canonical_source
+            ])
 
     if insert_variables:
         try:
+            print "Inserting new clients. Elapsed:", datetime.datetime.now() - datestart
             load_dimension(insert_variables, target_query, target)
             details += str(len(insert_variables)) + " new clients.\n"
         except Exception, e:
@@ -111,8 +115,9 @@ def run(source, target):
             details += "\n"
     if update_variables:
         try:
+            print "Updating clients. Elapsed:", datetime.datetime.now() - datestart
             load_dimension(update_variables, target_update_query, target)
-            details += str(len(insert_variables)) + " clients updated.\n"
+            details += str(len(update_variables)) + " clients updated.\n"
         except Exception, e:
             status = DIMENSION_UPDATE_STATUS['failure']
             details += "At update\n" + str(e)
@@ -120,6 +125,7 @@ def run(source, target):
 
     dateend = datetime.datetime.now()
 
+    print "Dimension dim_cliente completed. Elapsed:", dateend - datestart
     d = dim_loaded(my_name, datestart, dateend, status, details)
     return d
 
