@@ -36,7 +36,7 @@ def run(source, target):
 
     print "Applying transformations and filtering clients. Elapsed:", datetime.datetime.now() - datestart
     nu_clients = pd.DataFrame(
-        filter(lambda y: y['d_hash'] not in dim_clients['hash'].values,
+        filter(lambda y: dim_clients[(dim_clients.hash == y['d_hash'])].head(1).empty,
                map(transform_and_hash_client,
                clients.codigocliente,
                clients.nome,
