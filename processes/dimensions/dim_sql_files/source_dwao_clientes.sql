@@ -5,3 +5,4 @@ select
 	, cli.version
 	, cli.source
 from dim_cliente cli
+where cli.source = %(source)s

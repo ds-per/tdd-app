@@ -5,11 +5,17 @@ import pandas as pd
 import hashlib
 import re
 import datetime
+import collections
 from etl_common import get_df_row_for_values, load_dimension, dim_loaded
 
 sql_dir = "dim_sql_files"
 my_name = "dim_cliente"
 canonical_source = "ZW"
+dim_clients = None
+cpn = collections.namedtuple('cpn', ['tlf', 'tlm'])
+count = 0
+count_update = 0
+
 
 def run(source, target):
     datestart = datetime.datetime.now()
@@ -22,87 +28,77 @@ def run(source, target):
     # cuz Exception: Cannot extract from target stype
     p.add_source("sql", "source_dw_dim_cliente", "source", url=DATABASES[target])
 
-    get_source_clientes = load(os.path.join(os.path.dirname(__file__), os.path.join(sql_dir, 'source_zw_clientes.sql')))
-    get_dw_clientes = load(os.path.join(os.path.dirname(__file__), os.path.join(sql_dir, 'source_dwao_clientes.sql')))
-    target_query = load(os.path.join(os.path.dirname(__file__), os.path.join(sql_dir, 'target_dw_insert_dim_cliente.sql')))
-    target_update_query = load(os.path.join(os.path.dirname(__file__), os.path.join(sql_dir, 'target_dw_update_dim_cliente.sql')))
+    get_source_clientes = load(os.path.join(os.path.dirname(__file__),
+                                            os.path.join(sql_dir, 'source_zw_clientes.sql')))
+    get_dw_clientes = load(os.path.join(os.path.dirname(__file__),
+                                        os.path.join(sql_dir, 'source_dwao_clientes.sql')))
+    target_query = load(os.path.join(os.path.dirname(__file__),
+                                     os.path.join(sql_dir, 'target_dw_insert_dim_cliente.sql')))
+    target_update_query = load(os.path.join(os.path.dirname(__file__),
+                                            os.path.join(sql_dir, 'target_dw_update_dim_cliente.sql')))
 
     print "Extracting clients. Elapsed:", datetime.datetime.now() - datestart
     clients = p.extract("zw_cliente", {'query': get_source_clientes})
 
     print "Extracting clients from DW. Elapsed:", datetime.datetime.now() - datestart
     # retrieve all dim_client hash
-    dim_clients = p.extract("source_dw_dim_cliente", {'query': get_dw_clientes})
+    global dim_clients
+    dim_clients = p.extract("source_dw_dim_cliente", {'query': get_dw_clientes, 'params': {'source': canonical_source}})
 
     print "Applying transformations and filtering clients. Elapsed:", datetime.datetime.now() - datestart
-    nu_clients = pd.DataFrame(
-        filter(lambda y: dim_clients[(dim_clients.hash == y['d_hash'])].head(1).empty,
-               map(transform_and_hash_client,
-               clients.codigocliente,
-               clients.nome,
-               clients.sexo,
-               clients.datanascimento,
-               clients.estadocivil,
-               clients.telefone,
-               clients.telemovel,
-               clients.email,
-               clients.provincia,
-               clients.municipio)
-               )
+    clients = pd.DataFrame(
+        map(transform_and_hash_client,
+            clients.codigocliente,
+            clients.nome,
+            clients.sexo,
+            clients.datanascimento,
+            clients.estadocivil,
+            clients.telefone,
+            clients.telemovel,
+            clients.email,
+            clients.provincia,
+            clients.municipio)
     )
+    nu_clients = clients[~clients.d_hash.isin(dim_clients['hash'])]
 
-    insert_variables = []
-    update_variables = []
     status = DIMENSION_UPDATE_STATUS['success']
     details = ""
 
     print "Selecting for insert or update. Elapsed:", datetime.datetime.now() - datestart
-    for index, row in nu_clients.iterrows():
+    nu_insert_clients = nu_clients[~nu_clients.codigocliente.isin(dim_clients['codigocliente'])]
 
-        try:
-            tlf = int(row['telefone'])
-        except:
-            tlf = 0
-        try:
-            tlm = int(row['telemovel'])
-        except:
-            tlm = 0
+    insert_variables = map(get_new_clients,
+                           nu_insert_clients.codigocliente,
+                           nu_insert_clients.nome,
+                           nu_insert_clients.provincia,
+                           nu_insert_clients.municipio,
+                           nu_insert_clients.sexo,
+                           nu_insert_clients.datanascimento,
+                           nu_insert_clients.estadocivil,
+                           nu_insert_clients.telefone,
+                           nu_insert_clients.telemovel,
+                           nu_insert_clients.email,
+                           nu_insert_clients.d_hash
+                           )
 
-        r = get_df_row_for_values(dim_clients, row['codigocliente'], canonical_source)
-        try:
-            r = r.head(1)
-            update_variables.append([
-                row['nome'],
-                row['provincia'],
-                row['municipio'],
-                row['sexo'],
-                row['datanascimento'],
-                row['estadocivil'],
-                tlf,
-                tlm,
-                row['email'],
-                int(r.iloc[0]['version'])+1,
-                row['d_hash'],
-                canonical_source,
-                r.iloc[0]['codigocliente'],
-                canonical_source
-            ])
-        except:
-            insert_variables.append([
-                row['codigocliente'],
-                row['nome'],
-                row['provincia'],
-                row['municipio'],
-                row['sexo'],
-                row['datanascimento'],
-                row['estadocivil'],
-                tlf,
-                tlm,
-                row['email'],
-                1,
-                row['d_hash'],
-                canonical_source
-            ])
+    print "Updates now"
+    nu_update_clients = nu_clients[nu_clients.codigocliente.isin(dim_clients['codigocliente'])]
+
+    # new column codigocliente as int for faster search
+    dim_clients.loc[:, "codigoclienteint"] = dim_clients.codigocliente.astype(int)
+    update_variables = map(get_clients_update,
+                           nu_update_clients.codigocliente,
+                           nu_update_clients.nome,
+                           nu_update_clients.provincia,
+                           nu_update_clients.municipio,
+                           nu_update_clients.sexo,
+                           nu_update_clients.datanascimento,
+                           nu_update_clients.estadocivil,
+                           nu_update_clients.telefone,
+                           nu_update_clients.telemovel,
+                           nu_update_clients.email,
+                           nu_update_clients.d_hash
+                           )
 
     if insert_variables:
         try:
@@ -185,3 +181,97 @@ def transform_and_hash_client(
         'municipio': municipio,
         'd_hash': d_hash.hexdigest()
     }
+
+
+def get_new_clients(
+        codigocliente,
+        nome,
+        provincia,
+        municipio,
+        sexo,
+        datanascimento,
+        estadocivil,
+        telefone,
+        telemovel,
+        email,
+        d_hash):
+
+    if codigocliente is None:
+        return
+
+    phones = clean_phone_numbers(telefone, telemovel)
+    global count
+    count += 1
+    print count, codigocliente
+
+    return [
+        codigocliente,
+        nome,
+        provincia,
+        municipio,
+        sexo,
+        datanascimento,
+        estadocivil,
+        phones.tlf,
+        phones.tlm,
+        email,
+        1,
+        d_hash,
+        canonical_source
+    ]
+
+
+def get_clients_update(
+        codigocliente,
+        nome,
+        provincia,
+        municipio,
+        sexo,
+        datanascimento,
+        estadocivil,
+        telefone,
+        telemovel,
+        email,
+        d_hash):
+
+    if codigocliente is None:
+        return
+
+    global count_update
+    count_update += 1
+    print count_update, codigocliente
+
+    r = dim_clients[dim_clients.codigoclienteint == int(codigocliente)]
+    r = r.head(1)
+
+    phones = clean_phone_numbers(telefone, telemovel)
+
+    return [
+        nome,
+        provincia,
+        municipio,
+        sexo,
+        datanascimento,
+        estadocivil,
+        phones.tlf,
+        phones.tlm,
+        email,
+        int(r.iloc[0]['version'])+1,
+        d_hash,
+        canonical_source,
+        r.iloc[0]['codigocliente'],
+        canonical_source
+    ]
+
+
+def clean_phone_numbers(tlf, tlm):
+    try:
+        tlf = int(tlf)
+    except:
+        tlf = 0
+    try:
+        tlm = int(tlm)
+    except:
+        tlm = 0
+
+    return cpn(tlf, tlm)
