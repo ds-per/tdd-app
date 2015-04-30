@@ -88,6 +88,24 @@ def run(fact_table, dia, source, target):
     p.add_source("hdf", "staging", "staging", path=stagingdir, filename=filename)
     p.add_source("sql", "fct_parque", "target", url=DATABASES[target], table="fct_parque")
     p.add_source("sql", "fct_expirados", "target", url=DATABASES[target], table="fct_expirados")
+    p.add_source("sql", "parque_activo", "source", url=DATABASES[source])
+
+    query = load(os.path.join(sqldir, 'parque_activo.sql'))
+    p.extract("parque_activo", params={'query': query, 'params': {'day': dia}}, save=True)
+    print "extract activo: ", len(p.data)
+
+    p.to_datetime(["datainicio", "datafim", "dataanulacao"])
+    p.add_column("idtempo", idtempo)
+    # ACTIVO
+    p.data = parque_activo(p.data, dia)
+    p.add_column("idtempo", idtempo)
+
+    r = p.clean("fct_parque", conditions=[("idtempo", "eq", idtempo)])
+    print "clean fct_parque: ", r.rowcount
+
+    p.load("fct_parque")
+    print "load fct_parque: ", len(p.data)
+
 
     if p.datastore.staging.exists():
         p.extract("staging", save=True)
@@ -104,15 +122,6 @@ def run(fact_table, dia, source, target):
         print "Save staging, ", p.datastore.staging.fullpath
 
     parque = p.data
-    # ACTIVO
-    p.data = parque_activo(parque, dia)
-    p.add_column("idtempo", idtempo)
-
-    r = p.clean("fct_parque", conditions=[("idtempo", "eq", idtempo)])
-    print "clean fct_parque: ", r.rowcount
-
-    p.load("fct_parque")
-    print "load fct_parque: ", len(p.data)
 
     # EXPIRADO
     p.data = parque_exp(parque, dia)
