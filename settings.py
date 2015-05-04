@@ -49,6 +49,11 @@ DATABASES = {
     "49-acontecimento": "mysql+pymysql://root:pinkfloyd@10.151.12.49/acontecimento",
     "49-dw": "mysql+pymysql://root:pinkfloyd@10.151.12.49/dwao?charset=utf8",
     "129-aaaa": "mssql+pymssql://bireporting:Bireporting!@10.151.8.129/?charset=utf8",
+    "228-tipi-mongo": {
+        "host": "10.151.12.228",
+        "port": 27017,
+        "db": "zapccm"
+    }
 }
 
 
@@ -64,9 +69,17 @@ DATABASES_MAPPING = {
 
 CANONICAL_SOURCES = ['ZW']
 
+MONGODB_COLLECTIONS = {
+    "228-tipi-mongo": {
+        "arvore": "arvore",
+        "contactos": "contactos"
+    }
+}
+
 FACT_DIMENSIONS = {
     "vpps": ['dim_loja'],
-    "compras_vod": ['dim_filme', 'dim_cliente']
+    "compras_vod": ['dim_filme', 'dim_cliente'],
+    "tipi": ['dim_cliente', 'dim_tipi_arvore']
 }
 
 DIMENSION_UPDATE_STATUS = {
