@@ -38,6 +38,15 @@ SELECT
                 and s4.idcontaservico = s1.idcontaservico
         ))
     LEFT JOIN subscricao s2 ON  s2.idsubscricao = c2.idsubscricao
+    left join consumo c3 ON c3.idconsumo = (select max(idconsumo)
+                                                    from consumo c5
+                                                    inner join subscricao s5 using(idsubscricao)
+                                                    where
+                                                    s5.idcontaservico = s1.idcontaservico
+                                                    and c5.datainicio < %(day)s
+                                                    and c5.datafim >= %(day)s
+                                                    and c5.idconsumo != c1.idconsumo
+                                                    and s5.idproduto != 27)
     INNER JOIN contaservico ct ON ct.idcontaservico =  s1.idcontaservico
     INNER JOIN conta using(idconta)
     INNER JOIN subscricao_equipamento on s1.idsubscricao = subscricao_equipamento.idsubscricao
@@ -47,6 +56,7 @@ SELECT
     INNER JOIN municipio mp ON mp.idmunicipio = cm.idmunicipio
     WHERE
     c1.datainicio = %(day)s
+    and c3.idconsumo is null
     and s1.idproduto != 27
     and ct.idtipocontaservico = 1
     GROUP BY demora, idmodelomaterial, from_produto, to_produto, idprovincia, municipio, tipo
