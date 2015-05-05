@@ -25,7 +25,8 @@ WHERE
            INNER JOIN
             subscricao s2 using(idsubscricao)
             WHERE
-                s2.idcontaservico = s1.idcontaservico
-            AND c2.datainicio  in (%(yest)s, %(day)s)
-            AND c2.idconsumo > c1.idconsumo)
+                c2.idconsumo != c1.idconsumo
+            AND s2.idcontaservico = s1.idcontaservico
+            AND c2.datainicio = %(day)s OR (c2.datainicio = %(yest)s AND c2.datafim > %(yest)s)
+    )
 GROUP BY idmodelomaterial, idprovincia , s1.idproduto, municipio
