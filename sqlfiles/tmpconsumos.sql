@@ -47,6 +47,15 @@ FROM consumo c1
                                     )
                 and s4.idcontaservico = s1.idcontaservico))
   LEFT JOIN subscricao s2 ON s2.idsubscricao = c2.idsubscricao
+    left join consumo c3 ON c3.idconsumo = (select max(idconsumo)
+                                                    from consumo c5
+                                                    inner join subscricao s5 using(idsubscricao)
+                                                    where
+                                                    s5.idcontaservico = s1.idcontaservico
+                                                    and c5.datainicio < %(day)s
+                                                    and c5.datafim >= %(day)s
+                                                    and c5.idconsumo != c1.idconsumo
+                                                    and s5.idproduto != 27)
   INNER JOIN contaservico ct ON ct.idcontaservico = s1.idcontaservico
   INNER JOIN conta USING (idconta)
   INNER JOIN subscricao_equipamento ON s1.idsubscricao = subscricao_equipamento.idsubscricao
@@ -82,7 +91,8 @@ FROM consumo c1
   LEFT JOIN aquisicao ON aquisicao.idfactura = fi.idfactura
   LEFT JOIN carregamentodirecto ctd ON ctd.idcarregamentodirecto = crs.idcarregamentodirecto
 WHERE
-  c1.datainicio = %(day)s
-  AND s1.idproduto != 27
-  AND ct.idtipocontaservico = 1
+    c1.datainicio = %(day)s
+    and c3.idconsumo is null
+    and s1.idproduto != 27
+    and ct.idtipocontaservico = 1
 GROUP BY demora, idmodelomaterialstb, s1.idproduto, mp.idprovincia, mp.idmunicipio, tipo, loja, loja_caixa, canal
