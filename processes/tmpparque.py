@@ -1,6 +1,6 @@
 from pdetl import Pipeline
 from settings import load
-from settings import DATABASES, CONSUMOS_CLASS
+from settings import DATABASES
 import datetime
 import os
 
@@ -13,6 +13,7 @@ def run(fact_table, dia, source, target):
     print "start ", dia
 
     idtempo = int("{}".format(dia.strftime("%Y%m%d")))
+    yest = int("{}".format(dia - datetime.timedelta(days=1)))
 
     p = Pipeline()
     p.add_source("sql", "consumos", "source", url=DATABASES[source])
@@ -31,7 +32,9 @@ def run(fact_table, dia, source, target):
     print "-------------------"
 
     query = load(os.path.join(sqldir, 'tmpparque.sql'))
-    p.extract("parque", params={'query': query, 'params': {'idtempo': idtempo}}, save=True)
+    p.extract("parque",
+              params={'query': query, 'params': {'idtempo': idtempo, 'yest': yest}},
+              save=True)
     p.add_column("idtempo", idtempo)
     print "extract: ", len(p.data)
 
