@@ -1,14 +1,6 @@
 version: '3.0'
 
 services:
-  nginx:
-    container_name: nginx
-    build: ./services/nginx
-    restart: always
-    ports:
-      - 80:80
-    depends_on:
-      - users
 
   users:
     container_name: users
@@ -17,15 +9,19 @@ services:
       dockerfile: Dockerfile-dev
     volumes:
       - './services/users:/usr/src/app'
-    expose:
-      - '5000'
+    ports:
+      - 5001:5000
     environment:
       - FLASK_DEBUG=1
       - APP_SETTINGS=project.config.DevelopmentConfig
       - DATABASE_URL=postgres://postgres:postgres@users-db:5432/users_dev
       - DATABASE_TEST_URL=postgres://postgres:postgres@users-db:5432/users_test
+    depends_on:
+      - users-db
+    links:
+      - users-db
 
-  users_db:
+  users-db:
     container_name: users-db
     build:
       context: ./services/users/project/db
@@ -36,3 +32,13 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
 
+  nginx:
+    container_name: nginx
+    build: ./services/nginx
+    restart: always
+    ports:
+      - 80:80
+    depends_on:
+      - users
+    links:
+      - users
