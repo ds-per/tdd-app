@@ -91,4 +91,4 @@ def index():
         db.session.commit()
 
     users = User.query.all()
-    return render_template('index.html', users=users)  
+    return render_template('index.html', users=users)
